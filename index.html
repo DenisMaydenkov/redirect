@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Подключение VPN</title>
+<style>
+  html,body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;text-align:center;padding:24px;box-sizing:border-box}
+  .btn{display:block;width:100%;max-width:340px;margin:12px auto 0;padding:16px;background:#2f7de1;color:#fff;border:0;border-radius:14px;text-decoration:none;font-size:18px;box-sizing:border-box}
+  .btn.gray{background:#3a3a3c}
+  p{max-width:420px;line-height:1.4;color:#ccc}
+  #dbg{margin-top:32px;width:100%;max-width:420px;text-align:left;font:12px/1.5 monospace;color:#8e8e93;word-break:break-all;border-top:1px solid #3a3a3c;padding-top:12px}
+</style>
+</head>
+<body>
+  <h2>DMWorks Network System</h2>
+  <p id="msg">Загрузка…</p>
+  <a id="open" class="btn" href="#" style="display:none">Подключить в приложение</a>
+  <button id="copy" class="btn gray" style="display:none">Скопировать ключ</button>
+  <div id="dbg"></div>
+<script>
+  var VERSION = "v3";
+  var dbg = document.getElementById("dbg");
+  function log(s){ dbg.innerHTML += s + "<br>"; }
+
+  log("Версия страницы: " + VERSION);
+  log("URL: " + location.href);
+
+  var to = new URLSearchParams(location.search).get("to") || "";
+  log("Параметр to: " + (to || "(пусто)"));
+
+  var schemes = ["hiddify://", "happ://", "v2raytun://"];
+  var scheme = schemes.filter(function (s) { return to.indexOf(s) === 0; })[0];
+  log("Схема: " + (scheme || "не распознана"));
+
+  var msg = document.getElementById("msg");
+  var a = document.getElementById("open");
+  var c = document.getElementById("copy");
+
+  if (scheme) {
+    var key = decodeURIComponent(to.slice(scheme.length).replace(/^(import|add)\//, ""));
+    log("Ключ: " + key);
+    msg.textContent = "Нажми кнопку, чтобы добавить подписку в приложение. Оно должно быть установлено.";
+    a.href = to;
+    a.style.display = "block";
+    c.style.display = "block";
+    a.addEventListener("click", function () { log("Нажата кнопка, переход на " + scheme); });
+    c.addEventListener("click", function () {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(key).then(
+          function () { c.textContent = "Скопировано"; log("Ключ скопирован"); },
+          function (e) { log("Ошибка копирования: " + e); }
+        );
+      } else { log("Копирование недоступно в этом браузере"); }
+    });
+  } else {
+    msg.textContent = "Ссылка не распознана. Вернись в бота и нажми кнопку ещё раз.";
+  }
+</script>
+</body>
+</html>
