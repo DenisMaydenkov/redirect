@@ -7,7 +7,7 @@
 <style>
   html,body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
   body{display:flex;flex-direction:column;align-items:center;min-height:100vh;text-align:center;padding:24px;box-sizing:border-box}
-  .btn{display:block;width:100%;max-width:340px;margin:12px auto 0;padding:16px;background:#2f7de1;color:#fff;border:0;border-radius:14px;text-decoration:none;font-size:18px;box-sizing:border-box}
+  .btn{display:block;width:100%;max-width:340px;margin:12px auto 0;padding:16px;background:#2fb457;color:#fff;border:0;border-radius:14px;text-decoration:none;font-size:18px;box-sizing:border-box}
   .btn.gray{background:#3a3a3c}
   p{max-width:420px;line-height:1.4;color:#ccc}
   #dbg{margin-top:32px;width:100%;max-width:420px;text-align:left;font:12px/1.5 monospace;color:#8e8e93;word-break:break-all;border-top:1px solid #3a3a3c;padding-top:12px}
@@ -20,7 +20,7 @@
   <button id="copy" class="btn gray" style="display:none">Скопировать ключ</button>
   <div id="dbg"></div>
 <script>
-  var VERSION = "v3";
+  var VERSION = "v4";
   var dbg = document.getElementById("dbg");
   function log(s){ dbg.innerHTML += s + "<br>"; }
 
@@ -41,7 +41,7 @@
   if (scheme) {
     var key = decodeURIComponent(to.slice(scheme.length).replace(/^(import|add)\//, ""));
     log("Ключ: " + key);
-    msg.textContent = "Нажми кнопку, чтобы добавить подписку в приложение. Оно должно быть установлено.";
+    msg.textContent = "Открываем приложение… Если ничего не произошло, нажми зелёную кнопку. Приложение должно быть установлено.";
     a.href = to;
     a.style.display = "block";
     c.style.display = "block";
@@ -54,6 +54,12 @@
         );
       } else { log("Копирование недоступно в этом браузере"); }
     });
+
+    // Автопереход в приложение
+    setTimeout(function () {
+      log("Автопереход на " + scheme);
+      location.href = to;
+    }, 400);
   } else {
     msg.textContent = "Ссылка не распознана. Вернись в бота и нажми кнопку ещё раз.";
   }
