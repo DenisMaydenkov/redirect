@@ -30,7 +30,7 @@
   var to = new URLSearchParams(location.search).get("to") || "";
   log("Параметр to: " + (to || "(пусто)"));
 
-  var schemes = ["hiddify://", "happ://", "v2raytun://"];
+  var schemes = ["hiddify://", "happ://", "v2raytun://", "incy://"];
   var scheme = schemes.filter(function (s) { return to.indexOf(s) === 0; })[0];
   log("Схема: " + (scheme || "не распознана"));
 
