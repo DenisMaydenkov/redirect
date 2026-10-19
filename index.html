@@ -2,67 +2,121 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
 <title>Подключение VPN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap">
 <style>
-  html,body{margin:0;background:#1c1c1e;color:#fff;font-family:-apple-system,Segoe UI,Roboto,sans-serif}
-  body{display:flex;flex-direction:column;align-items:center;min-height:100vh;text-align:center;padding:24px;box-sizing:border-box}
-  .btn{display:block;width:100%;max-width:340px;margin:12px auto 0;padding:16px;background:#2fb457;color:#fff;border:0;border-radius:14px;text-decoration:none;font-size:18px;box-sizing:border-box}
-  .btn.gray{background:#3a3a3c}
-  p{max-width:420px;line-height:1.4;color:#ccc}
-  #dbg{margin-top:32px;width:100%;max-width:420px;text-align:left;font:12px/1.5 monospace;color:#8e8e93;word-break:break-all;border-top:1px solid #3a3a3c;padding-top:12px}
+/* Signum tokens, same as the mini app */
+:root{--bg:#f2f2f2;--fg:#000;--primary:#000;--on-primary:#f2f2f2;--secondary:#1b1b1b;--muted:#6a6a6a;--variant:#e2e2e2;--outline:#d0d0d0;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#000;--fg:#f2f2f2;--primary:#f2f2f2;--on-primary:#000;--secondary:#e4e4e4;--muted:#8a8a8a;--variant:#1c1c1c;--outline:#2a2a2a;color-scheme:dark}}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--fg);font-family:"Instrument Sans",-apple-system,"Helvetica Neue",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column;padding:calc(24px + env(safe-area-inset-top)) 0 calc(30px + env(safe-area-inset-bottom))}
+.wrap{flex:1;display:flex;flex-direction:column;width:100%;max-width:480px;margin:0 auto}
+.edge{padding:0 23px}
+.logo{display:block;height:40px;width:auto}
+.logo path{fill:var(--fg)}
+.icon{display:block;width:96px;height:96px;margin-top:40px}
+.mono{display:grid;place-items:center;width:96px;height:96px;margin-top:40px;border-radius:22px;background:var(--variant);font-size:40px;font-weight:700}
+.label{margin-top:24px;font-size:12px;letter-spacing:1px;color:var(--secondary)}
+h1{margin:8px 0 0;font-size:40px;font-weight:700;letter-spacing:-1.8px;line-height:42px}
+.lead{margin:10px 0 0;font-size:15px;line-height:1.4;color:var(--muted)}
+.foot{margin-top:auto;padding:24px 23px 0;display:flex;flex-direction:column;gap:9px}
+.pill{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:54px;border-radius:27px;border:0;font:inherit;font-size:17px;font-weight:500;text-decoration:none;cursor:pointer}
+.pill.fill{background:var(--primary);color:var(--on-primary)}
+.pill.line{background:none;border:1px solid var(--outline);color:var(--fg)}
+.note{margin:6px 0 0;font-size:13px;line-height:1.4;color:var(--muted);text-align:center}
+.note a{color:var(--fg);text-decoration:underline;text-underline-offset:2px}
+.toast{position:fixed;left:50%;bottom:calc(32px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--primary);color:var(--on-primary);padding:12px 18px;border-radius:22px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){.toast{transition:none}}
 </style>
 </head>
 <body>
-  <h2>DMWorks Network System</h2>
-  <p id="msg">Загрузка…</p>
-  <a id="open" class="btn" href="#" style="display:none">Подключить в приложение</a>
-  <button id="copy" class="btn gray" style="display:none">Скопировать ключ</button>
-  <div id="dbg"></div>
+<main class="wrap">
+  <div class="edge">
+    <svg class="logo" width="182" height="40" viewBox="0 0 182 40" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="DmWorks Network System">
+<path d="M7.58863 5.43158C9.49885 5.43158 11.1703 5.77462 12.603 6.4607C14.0505 7.14678 15.1773 8.11022 15.9831 9.35101C16.789 10.5772 17.192 12.0078 17.192 13.6427C17.192 15.2776 16.789 16.7154 15.9831 17.9562C15.1773 19.1824 14.0505 20.1386 12.603 20.8246C11.1703 21.5107 9.49885 21.8538 7.58863 21.8538H0V5.43158H7.58863ZM2.95487 20.8465L1.32074 19.3138H7.7901C9.07353 19.3138 10.1928 19.0802 11.1479 18.6131C12.1179 18.1314 12.8641 17.4672 13.3864 16.6206C13.9237 15.7593 14.1923 14.7667 14.1923 13.6427C14.1923 12.5041 13.9237 11.5114 13.3864 10.6648C12.8641 9.81813 12.1179 9.16124 11.1479 8.69412C10.1928 8.2124 9.07353 7.97154 7.7901 7.97154H1.32074L2.95487 6.4388V20.8465Z" fill="#E4E4E4"></path>
+<path d="M19.1279 9.46049H22.038L22.7991 13.9273V21.8538H19.889V13.5113L19.1279 9.46049ZM27.4777 9.15394C28.5969 9.15394 29.5446 9.3875 30.3206 9.85462C31.1116 10.3217 31.7085 10.9932 32.1114 11.8691C32.5293 12.7303 32.7382 13.7741 32.7382 15.0002V21.8538H29.8281V15.4601C29.8281 14.1609 29.5446 13.1829 28.9775 12.526C28.4253 11.8545 27.612 11.5187 26.5375 11.5187C25.7764 11.5187 25.1123 11.7012 24.5452 12.0661C23.993 12.4165 23.5602 12.9128 23.2468 13.5551C22.9484 14.1974 22.7991 14.9492 22.7991 15.8104L21.7694 15.263C21.9037 13.9784 22.2246 12.8836 22.732 11.9786C23.2543 11.0735 23.9184 10.3801 24.7243 9.89841C25.5451 9.4021 26.4629 9.15394 27.4777 9.15394ZM37.3944 9.15394C38.5137 9.15394 39.4688 9.3875 40.2597 9.85462C41.0507 10.3217 41.6476 10.9932 42.0505 11.8691C42.4684 12.7303 42.6773 13.7741 42.6773 15.0002V21.8538H39.7672V15.4601C39.7672 14.1609 39.4837 13.1829 38.9166 12.526C38.3644 11.8545 37.5511 11.5187 36.4766 11.5187C35.7155 11.5187 35.0514 11.7012 34.4843 12.0661C33.9321 12.4165 33.4993 12.9128 33.1859 13.5551C32.8875 14.1974 32.7382 14.9492 32.7382 15.8104L31.7085 15.263C31.8428 13.9784 32.1637 12.8836 32.6711 11.9786C33.1934 11.0735 33.8575 10.3801 34.6634 9.89841C35.4842 9.4021 36.3945 9.15394 37.3944 9.15394Z" fill="#E4E4E4"></path>
+<path d="M64.7645 20.759H63.6452L68.7939 5.43158H71.883L66.1972 21.8538H62.4364L56.7729 6.81104H58.1608L52.4973 21.8538H48.7366L43.0507 5.43158H46.1623L51.2885 20.759L50.214 20.7371L55.8775 5.43158H59.0786L64.7645 20.759Z" fill="#E4E4E4"></path>
+<path d="M79.3139 22.1603C77.7768 22.1603 76.4262 21.8903 75.2622 21.3502C74.1131 20.7955 73.2102 20.0291 72.5536 19.051C71.9118 18.073 71.591 16.9417 71.591 15.6571C71.591 14.358 71.9118 13.2266 72.5536 12.2632C73.2102 11.2852 74.1131 10.5261 75.2622 9.986C76.4262 9.43129 77.7768 9.15394 79.3139 9.15394C80.8511 9.15394 82.1942 9.43129 83.3433 9.986C84.5073 10.5261 85.4102 11.2852 86.0519 12.2632C86.7086 13.2266 87.0369 14.358 87.0369 15.6571C87.0369 16.9417 86.7086 18.073 86.0519 19.051C85.4102 20.0291 84.5073 20.7955 83.3433 21.3502C82.1942 21.8903 80.8511 22.1603 79.3139 22.1603ZM79.3139 19.9269C80.2989 19.9269 81.1421 19.7517 81.8435 19.4014C82.5598 19.0511 83.112 18.562 83.5 17.9343C83.888 17.2921 84.082 16.533 84.082 15.6571C84.082 14.7813 83.888 14.0295 83.5 13.4018C83.112 12.7595 82.5598 12.2632 81.8435 11.9129C81.1421 11.5625 80.2989 11.3874 79.3139 11.3874C78.3439 11.3874 77.5007 11.5625 76.7844 11.9129C76.0681 12.2632 75.5159 12.7595 75.1279 13.4018C74.7399 14.0295 74.5459 14.7813 74.5459 15.6571C74.5459 16.533 74.7399 17.2921 75.1279 17.9343C75.5159 18.562 76.0681 19.0511 76.7844 19.4014C77.5007 19.7517 78.3439 19.9269 79.3139 19.9269Z" fill="#E4E4E4"></path>
+<path d="M88.798 9.46049H91.7081L92.4692 13.9711V21.8538H89.5591V13.4237L88.798 9.46049ZM98.8938 9.3729V11.8691C98.5655 11.7815 98.2073 11.7158 97.8193 11.672C97.4313 11.6282 97.0656 11.6063 96.7224 11.6063C95.9016 11.6063 95.1703 11.7815 94.5286 12.1318C93.8869 12.4822 93.3795 13.0077 93.0064 13.7084C92.6483 14.3944 92.4692 15.2411 92.4692 16.2483L91.7976 15.4382C91.8573 14.5623 92.0065 13.7449 92.2453 12.9858C92.499 12.2121 92.8423 11.5406 93.275 10.9713C93.7228 10.402 94.2675 9.9568 94.9092 9.63566C95.5509 9.31451 96.2971 9.15394 97.1477 9.15394C97.4462 9.15394 97.7521 9.17584 98.0655 9.21963C98.3789 9.24882 98.655 9.29992 98.8938 9.3729Z" fill="#E4E4E4"></path>
+<path d="M103.636 19.3795L102.786 19.0729L110.844 9.46049H114.202L103.435 21.8538H100.726V4.99365H103.636V19.3795ZM107.24 15.7228L109.277 13.9273L114.583 21.8538H111.158L107.24 15.7228Z" fill="#E4E4E4"></path>
+<path d="M128.906 18.0876C128.906 18.9197 128.667 19.6423 128.19 20.2553C127.712 20.8684 126.988 21.3429 126.018 21.6786C125.048 21.9997 123.832 22.1603 122.37 22.1603C120.862 22.1603 119.556 21.9778 118.452 21.6129C117.348 21.2334 116.49 20.7079 115.878 20.0364C115.281 19.3503 114.96 18.562 114.915 17.6716H117.87C117.96 18.1387 118.198 18.5547 118.586 18.9197C118.989 19.27 119.512 19.5401 120.153 19.7298C120.81 19.9196 121.556 20.0145 122.392 20.0145C123.601 20.0145 124.511 19.8758 125.123 19.5985C125.735 19.3065 126.041 18.8686 126.041 18.2847C126.041 17.8905 125.832 17.5913 125.414 17.3869C125.011 17.1826 124.242 17.0293 123.108 16.9271L120.623 16.7082C119.28 16.5914 118.221 16.3578 117.445 16.0075C116.669 15.6425 116.117 15.2046 115.788 14.6937C115.46 14.1682 115.296 13.6135 115.296 13.0296C115.296 12.1829 115.564 11.4749 116.102 10.9056C116.639 10.3363 117.385 9.90571 118.34 9.61376C119.295 9.30721 120.407 9.15394 121.676 9.15394C122.989 9.15394 124.16 9.33641 125.19 9.70135C126.22 10.0517 127.041 10.548 127.652 11.1903C128.264 11.818 128.608 12.5479 128.682 13.3799H125.727C125.668 13.0442 125.489 12.723 125.19 12.4165C124.907 12.0953 124.466 11.8326 123.869 11.6282C123.287 11.4093 122.504 11.2998 121.519 11.2998C120.474 11.2998 119.653 11.4312 119.057 11.6939C118.474 11.9567 118.183 12.3435 118.183 12.8544C118.183 13.1756 118.363 13.4529 118.721 13.6865C119.079 13.9054 119.743 14.0587 120.713 14.1463L123.914 14.4309C125.198 14.5477 126.197 14.774 126.914 15.1097C127.645 15.4309 128.16 15.8469 128.458 16.3578C128.757 16.8687 128.906 17.4453 128.906 18.0876Z" fill="#E4E4E4"></path>
+<path d="M42.7569 27.2009V34.3447H41.7663L38.135 29.1054H38.0688V34.3447H36.9909V27.2009H37.9885L41.6232 32.4471H41.6895V27.2009H42.7569ZM44.3292 34.3447V27.2009H48.8081V28.1287H45.4071V30.3054H48.5744V31.2298H45.4071V33.4169H48.8499V34.3447H44.3292ZM49.8955 28.1287V27.2009H55.4243V28.1287H53.1953V34.3447H52.121V28.1287H49.8955ZM58.0448 34.3447L56.0635 27.2009H57.1972L58.589 32.7332H58.6553L60.1029 27.2009H61.2261L62.6737 32.7367H62.7399L64.1282 27.2009H65.2654L63.2806 34.3447H62.1958L60.6924 28.9938H60.6366L59.1331 34.3447H58.0448ZM72.0988 30.7728C72.0988 31.5356 71.9593 32.1913 71.6802 32.7402C71.4011 33.2866 71.0186 33.7075 70.5326 34.0029C70.0489 34.2959 69.4989 34.4424 68.8827 34.4424C68.2641 34.4424 67.7118 34.2959 67.2258 34.0029C66.7421 33.7075 66.3607 33.2855 66.0816 32.7367C65.8026 32.1879 65.6631 31.5332 65.6631 30.7728C65.6631 30.0101 65.8026 29.3554 66.0816 28.8089C66.3607 28.2601 66.7421 27.8392 67.2258 27.5462C67.7118 27.2509 68.2641 27.1032 68.8827 27.1032C69.4989 27.1032 70.0489 27.2509 70.5326 27.5462C71.0186 27.8392 71.4011 28.2601 71.6802 28.8089C71.9593 29.3554 72.0988 30.0101 72.0988 30.7728ZM71.0314 30.7728C71.0314 30.1914 70.9372 29.7019 70.7489 29.3043C70.5628 28.9043 70.307 28.602 69.9815 28.3973C69.6582 28.1904 69.292 28.0869 68.8827 28.0869C68.4711 28.0869 68.1036 28.1904 67.7804 28.3973C67.4572 28.602 67.2014 28.9043 67.013 29.3043C66.827 29.7019 66.7339 30.1914 66.7339 30.7728C66.7339 31.3542 66.827 31.8448 67.013 32.2448C67.2014 32.6425 67.4572 32.9448 67.7804 33.1518C68.1036 33.3564 68.4711 33.4587 68.8827 33.4587C69.292 33.4587 69.6582 33.3564 69.9815 33.1518C70.307 32.9448 70.5628 32.6425 70.7489 32.2448C70.9372 31.8448 71.0314 31.3542 71.0314 30.7728ZM73.4426 34.3447V27.2009H75.989C76.5425 27.2009 77.0018 27.2962 77.3669 27.4869C77.7343 27.6776 78.0087 27.9415 78.1901 28.2787C78.3715 28.6136 78.4621 29.0008 78.4621 29.4403C78.4621 29.8775 78.3703 30.2624 78.1866 30.5949C78.0052 30.9251 77.7308 31.1821 77.3634 31.3658C76.9983 31.5495 76.539 31.6414 75.9855 31.6414H74.0565V30.7135H75.8879C76.2367 30.7135 76.5204 30.6635 76.739 30.5635C76.9599 30.4635 77.1215 30.3182 77.2238 30.1275C77.3262 29.9368 77.3773 29.7077 77.3773 29.4403C77.3773 29.1706 77.325 28.9368 77.2203 28.7392C77.118 28.5415 76.9564 28.3904 76.7355 28.2857C76.5169 28.1787 76.2297 28.1253 75.8739 28.1253H74.5205V34.3447H73.4426ZM76.9692 31.1216L78.7342 34.3447H77.5064L75.7762 31.1216H76.9692ZM79.7737 34.3447V27.2009H80.8516V30.6123H80.9388L83.9351 27.2009H85.292L82.4108 30.417L85.3025 34.3447H84.0049L81.6957 31.153L80.8516 32.1227V34.3447H79.7737ZM92.7926 29.0775C92.7554 28.7473 92.6019 28.4915 92.3321 28.3101C92.0624 28.1264 91.7228 28.0346 91.3136 28.0346C91.0205 28.0346 90.7671 28.0811 90.5531 28.1741C90.3392 28.2648 90.1729 28.3904 90.0543 28.5508C89.938 28.709 89.8799 28.8892 89.8799 29.0915C89.8799 29.2613 89.9194 29.4078 89.9985 29.531C90.0799 29.6543 90.1857 29.7577 90.3159 29.8415C90.4485 29.9228 90.5903 29.9914 90.7415 30.0473C90.8927 30.1007 91.038 30.1449 91.1775 30.1798L91.8752 30.3612C92.1031 30.417 92.3368 30.4926 92.5763 30.5879C92.8158 30.6833 93.0379 30.8089 93.2425 30.9647C93.4472 31.1205 93.6123 31.3135 93.7379 31.5437C93.8658 31.7739 93.9297 32.0495 93.9297 32.3704C93.9297 32.775 93.8251 33.1343 93.6158 33.4483C93.4088 33.7622 93.1077 34.0099 92.7123 34.1912C92.3193 34.3726 91.8438 34.4633 91.2857 34.4633C90.7508 34.4633 90.288 34.3784 89.8974 34.2087C89.5067 34.0389 89.2009 33.7982 88.9799 33.4866C88.759 33.1727 88.6369 32.8006 88.6137 32.3704H89.695C89.716 32.6285 89.7997 32.8436 89.9462 33.0157C90.095 33.1855 90.2845 33.3122 90.5148 33.3959C90.7473 33.4773 91.0019 33.518 91.2787 33.518C91.5833 33.518 91.8542 33.4704 92.0914 33.375C92.331 33.2773 92.5193 33.1425 92.6565 32.9704C92.7937 32.796 92.8623 32.5925 92.8623 32.3599C92.8623 32.1483 92.8019 31.9751 92.6809 31.8402C92.5623 31.7053 92.4007 31.5937 92.1961 31.5053C91.9938 31.417 91.7647 31.3391 91.5089 31.2716L90.6648 31.0414C90.0927 30.8856 89.6392 30.6565 89.3044 30.3542C88.9718 30.0519 88.8055 29.6519 88.8055 29.1543C88.8055 28.7427 88.9172 28.3834 89.1404 28.0764C89.3637 27.7695 89.666 27.5311 90.0473 27.3613C90.4287 27.1893 90.8589 27.1032 91.338 27.1032C91.8217 27.1032 92.2484 27.1881 92.6181 27.3579C92.9902 27.5276 93.2832 27.7613 93.4972 28.059C93.7111 28.3543 93.8227 28.6938 93.832 29.0775H92.7926ZM94.6666 27.2009H95.891L97.7571 30.4484H97.8339L99.7001 27.2009H100.924L98.3327 31.5402V34.3447H97.2583V31.5402L94.6666 27.2009ZM105.838 29.0775C105.801 28.7473 105.648 28.4915 105.378 28.3101C105.108 28.1264 104.769 28.0346 104.359 28.0346C104.066 28.0346 103.813 28.0811 103.599 28.1741C103.385 28.2648 103.219 28.3904 103.1 28.5508C102.984 28.709 102.926 28.8892 102.926 29.0915C102.926 29.2613 102.965 29.4078 103.044 29.531C103.126 29.6543 103.232 29.7577 103.362 29.8415C103.494 29.9228 103.636 29.9914 103.787 30.0473C103.939 30.1007 104.084 30.1449 104.223 30.1798L104.921 30.3612C105.149 30.417 105.383 30.4926 105.622 30.5879C105.862 30.6833 106.084 30.8089 106.288 30.9647C106.493 31.1205 106.658 31.3135 106.784 31.5437C106.912 31.7739 106.976 32.0495 106.976 32.3704C106.976 32.775 106.871 33.1343 106.662 33.4483C106.455 33.7622 106.154 34.0099 105.758 34.1912C105.365 34.3726 104.89 34.4633 104.332 34.4633C103.797 34.4633 103.334 34.3784 102.943 34.2087C102.553 34.0389 102.247 33.7982 102.026 33.4866C101.805 33.1727 101.683 32.8006 101.66 32.3704H102.741C102.762 32.6285 102.846 32.8436 102.992 33.0157C103.141 33.1855 103.33 33.3122 103.561 33.3959C103.793 33.4773 104.048 33.518 104.325 33.518C104.629 33.518 104.9 33.4704 105.137 33.375C105.377 33.2773 105.565 33.1425 105.702 32.9704C105.84 32.796 105.908 32.5925 105.908 32.3599C105.908 32.1483 105.848 31.9751 105.727 31.8402C105.608 31.7053 105.447 31.5937 105.242 31.5053C105.04 31.417 104.811 31.3391 104.555 31.2716L103.711 31.0414C103.139 30.8856 102.685 30.6565 102.35 30.3542C102.018 30.0519 101.851 29.6519 101.851 29.1543C101.851 28.7427 101.963 28.3834 102.186 28.0764C102.41 27.7695 102.712 27.5311 103.093 27.3613C103.475 27.1893 103.905 27.1032 104.384 27.1032C104.868 27.1032 105.294 27.1881 105.664 27.3579C106.036 27.5276 106.329 27.7613 106.543 28.059C106.757 28.3543 106.869 28.6938 106.878 29.0775H105.838ZM107.911 28.1287V27.2009H113.44V28.1287H111.211V34.3447H110.137V28.1287H107.911ZM114.662 34.3447V27.2009H119.141V28.1287H115.74V30.3054H118.907V31.2298H115.74V33.4169H119.183V34.3447H114.662ZM120.58 27.2009H121.889L124.163 32.7541H124.247L126.521 27.2009H127.829V34.3447H126.803V29.1752H126.737L124.63 34.3343H123.779L121.672 29.1717H121.606V34.3447H120.58V27.2009Z" fill="white"></path>
+<path d="M181.03 39.9512H161.054C172.087 39.9512 181.03 31.0079 181.03 19.9756C181.03 8.94336 172.086 0 161.054 0C150.022 9.27778e-05 141.079 8.94342 141.079 19.9756C141.079 31.0078 150.022 39.9511 161.054 39.9512H141.079V0H181.03V39.9512Z" fill="#E4E4E4"></path>
+<path d="M146.607 28.4258H151.889V33.7079H146.607V28.4258Z" fill="#E4E4E4"></path>
+<path d="M162.452 13.6368H167.733V33.7074H162.452V13.6368Z" fill="#E4E4E4"></path>
+<path d="M170.375 6.24253H175.657V33.7076H170.375V6.24253Z" fill="#E4E4E4"></path>
+<path d="M154.529 21.0315H159.811V33.7077H154.529V21.0315Z" fill="#E4E4E4"></path>
+</svg>
+    <div id="pic"></div>
+    <div class="label" id="label">ПОДКЛЮЧЕНИЕ</div>
+    <h1 id="title">Открываем приложение</h1>
+    <p class="lead" id="lead">Секунду…</p>
+  </div>
+  <div class="foot" id="foot"></div>
+</main>
+<div class="toast" id="toast" role="status"></div>
 <script>
-  var VERSION = "v4";
-  var dbg = document.getElementById("dbg");
-  function log(s){ dbg.innerHTML += s + "<br>"; }
+// The mini app sends ?to=<app scheme>://import/<subscription>; Telegram can't open custom schemes itself.
+var BOT = "DMWorks_Network_System_bot";
+var APPS = {
+  "happ://": { name: "Happ", icon: "icons/happ.png",
+    dl: { ios: "https://apps.apple.com/app/happ-proxy-utility/id6504287215", android: "https://play.google.com/store/apps/details?id=com.happproxy", macos: "https://apps.apple.com/app/happ-proxy-utility/id6504287215", windows: "https://www.happ.su/main" } },
+  "v2raytun://": { name: "v2RayTun", icon: "icons/v2raytun.png",
+    dl: { ios: "https://apps.apple.com/app/v2raytun/id6476628951", android: "https://play.google.com/store/apps/details?id=com.v2raytun.android", macos: "https://apps.apple.com/app/v2raytun/id6476628951", windows: "https://github.com/DigneZzZ/v2raytun/releases" } },
+  "hiddify://": { name: "Hiddify", icon: "icons/hiddify.png",
+    dl: { ios: "https://apps.apple.com/app/hiddify-proxy-vpn/id6596777532", android: "https://play.google.com/store/apps/details?id=app.hiddify.com", macos: "https://github.com/hiddify/hiddify-app/releases/latest", windows: "https://github.com/hiddify/hiddify-app/releases/latest" } },
+  "incy://": { name: "INCY", icon: "icons/incy.png",
+    dl: { ios: "https://apps.apple.com/app/incy/id6756943388", android: "https://play.google.com/store/apps/details?id=llc.itdev.incy", macos: "https://github.com/INCY-DEV/incy-platforms/releases", windows: "https://github.com/INCY-DEV/incy-platforms/releases" } }
+};
+var STORE = { ios: "Скачать в App Store", android: "Скачать в Google Play", macos: "Скачать с сайта приложения", windows: "Скачать с сайта приложения" };
 
-  log("Версия страницы: " + VERSION);
-  log("URL: " + location.href);
-
-  var to = new URLSearchParams(location.search).get("to") || "";
-  log("Параметр to: " + (to || "(пусто)"));
-
-  var schemes = ["hiddify://", "happ://", "v2raytun://", "incy://"];
-  var scheme = schemes.filter(function (s) { return to.indexOf(s) === 0; })[0];
-  log("Схема: " + (scheme || "не распознана"));
-
-  var msg = document.getElementById("msg");
-  var a = document.getElementById("open");
-  var c = document.getElementById("copy");
-
-  if (scheme) {
-    var key = decodeURIComponent(to.slice(scheme.length).replace(/^(import|add)\//, ""));
-    log("Ключ: " + key);
-    msg.textContent = "Открываем приложение… Если ничего не произошло, нажми зелёную кнопку. Приложение должно быть установлено.";
-    a.href = to;
-    a.style.display = "block";
-    c.style.display = "block";
-    a.addEventListener("click", function () { log("Нажата кнопка, переход на " + scheme); });
-    c.addEventListener("click", function () {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(key).then(
-          function () { c.textContent = "Скопировано"; log("Ключ скопирован"); },
-          function (e) { log("Ошибка копирования: " + e); }
-        );
-      } else { log("Копирование недоступно в этом браузере"); }
-    });
-
-    // Автопереход в приложение
-    setTimeout(function () {
-      log("Автопереход на " + scheme);
-      location.href = to;
-    }, 400);
-  } else {
-    msg.textContent = "Ссылка не распознана. Вернись в бота и нажми кнопку ещё раз.";
+function platform() {
+  var ua = navigator.userAgent;
+  if (/iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)) return "ios";
+  if (/Android/.test(ua)) return "android";
+  if (/Mac/.test(ua)) return "macos";
+  return "windows";
+}
+function el(id) { return document.getElementById(id); }
+function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+function toast(text) { var t = el("toast"); t.textContent = text; t.classList.add("on"); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove("on"); }, 1800); }
+function copy(text) {
+  function done() { toast("Ключ скопирован"); }
+  if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(text).then(done, fallback); } else { fallback(); }
+  function fallback() {
+    var a = document.createElement("textarea"); a.value = text; a.setAttribute("readonly", ""); a.style.position = "fixed"; a.style.opacity = "0";
+    document.body.appendChild(a); a.select(); try { document.execCommand("copy"); done(); } catch (e) { toast("Не получилось скопировать"); } a.remove();
   }
+}
+
+var to = new URLSearchParams(location.search).get("to") || "";
+var scheme = Object.keys(APPS).filter(function (s) { return to.indexOf(s) === 0; })[0];
+var back = '<a class="pill line" href="https://t.me/' + BOT + '">Вернуться в Telegram</a>';
+
+if (!scheme) {
+  el("label").textContent = "ОШИБКА";
+  el("title").textContent = "Ссылка не распознана";
+  el("lead").textContent = "Вернитесь в приложение DMWorks в Telegram и нажмите «Добавить» ещё раз.";
+  el("foot").innerHTML = back;
+} else {
+  var app = APPS[scheme], p = platform();
+  var key = decodeURIComponent(to.slice(scheme.length).replace(/^(import|add)\//, ""));
+  el("pic").innerHTML = '<img class="icon" src="' + app.icon + '" alt="" width="96" height="96">';
+  el("label").textContent = "ПОДКЛЮЧЕНИЕ";
+  el("title").textContent = "Открываем " + app.name;
+  el("lead").textContent = "Если " + app.name + " не открылся сам, нажмите кнопку ниже. VPN добавится автоматически.";
+  el("foot").innerHTML =
+    '<a class="pill fill" id="open" href="' + esc(to) + '">Открыть ' + esc(app.name) + '</a>' +
+    '<button class="pill line" id="copy" type="button">Скопировать ключ</button>' + back +
+    '<p class="note">Нет приложения? <a href="' + esc(app.dl[p]) + '">' + STORE[p] + '</a></p>';
+  el("copy").addEventListener("click", function () { copy(key); });
+  setTimeout(function () { location.href = to; }, 400);
+}
 </script>
 </body>
 </html>
